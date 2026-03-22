@@ -1,0 +1,14 @@
+# Dependencies
+node_modules
+.next
+dist
+
+# Root directory
+.cache
+public
+
+# Docker
+Dockerfile
+
+# Metadata
+package-lock.json
