@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# 1. Secret Scanning
+# We check if gitleaks is installed first to avoid breaking the workflow for teammates
+if command -v gitleaks &> /dev/null
+then
+    echo "🛡️  Running Gitleaks..."
+    gitleaks protect --staged --verbose
+else
+    echo "⚠️  Gitleaks not found. Please install it: brew install gitleaks"
+    echo "Skipping secret scan for now..."
+fi
+
+# 2. Linting and Formatting
+echo "🧹 Running lint-staged..."
+npx lint-staged
