@@ -3,6 +3,7 @@ import styles from './page.module.css';
 
 export default function Home() {
     return (
+        // Testing commit and push with Husky pre-commit hook for secret scanning and linting
         <div className={styles.page}>
             <main className={styles.main}>
                 <Image
