@@ -1,0 +1,13 @@
+# Dependencies
+node_modules
+.next
+dist
+
+# Tooling Cache (The fix for your error)
+.cache
+
+# Docker
+Dockerfile
+
+# Metadata
+package-lock.json

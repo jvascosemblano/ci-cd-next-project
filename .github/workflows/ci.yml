@@ -10,7 +10,7 @@ on:
 
 jobs:
     quality-gate:
-        name: Lint, Typecheck, and Build
+        name: Full Quality & Security Audit
         runs-on: ubuntu-latest
 
         steps:
@@ -31,7 +31,7 @@ jobs:
               run: npm audit --audit-level=high
 
             - name: 5. Static Analysis (Trivy FS Scan)
-              uses: aquasecurity/trivy-action@master
+              uses: aquasecurity/trivy-action@6e7b7d1efe3b17409247657989d9774641e77f0d # Matches a verified release
               with:
                   scan-type: 'fs'
                   scan-ref: '.'
