@@ -1,0 +1,42 @@
+name: CI Validation
+
+# Trigger this workflow on every Pull Request to main,
+# and every time someone pushes directly to main.
+on:
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
+
+jobs:
+    quality-gate:
+        name: Lint, Typecheck, and Build
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: 1. Checkout Code
+              uses: actions/checkout@v4
+
+            - name: 2. Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 'lts/kotlin' # Use the latest LTS version of Node.js
+                  cache: 'npm' # This speeds up future runs by minutes
+
+            - name: 3. Install Dependencies
+              run: npm ci
+
+            - name: 4. Check Formatting (Prettier)
+              run: npx prettier --check .
+
+            - name: 5. Linting (ESLint)
+              run: npm run lint
+
+            - name: 6. Static Type Check (TypeScript)
+              run: npx tsc --noEmit
+
+            - name: 7. Production Smoke Build
+              run: npm run build
+              env:
+                  # Next.js optimizes differently if it knows it's in production
+                  NODE_ENV: production
