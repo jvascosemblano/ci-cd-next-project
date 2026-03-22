@@ -26,17 +26,33 @@ jobs:
             - name: 3. Install Dependencies
               run: npm ci
 
-            - name: 4. Check Formatting (Prettier)
+            - name: 4. Dependency Security Audit
+              # This checks for known vulnerabilities in your npm packages
+              run: npm audit --audit-level=high
+
+            - name: 5. Static Analysis (Trivy FS Scan)
+              uses: aquasecurity/trivy-action@master
+              with:
+                  scan-type: 'fs'
+                  scan-ref: '.'
+                  exit-code: '1'
+                  severity: 'CRITICAL,HIGH'
+
+            - name: 6. Check Formatting (Prettier)
               run: npx prettier --check .
 
-            - name: 5. Linting (ESLint)
+            - name: 7. Linting (ESLint)
               run: npm run lint
 
-            - name: 6. Static Type Check (TypeScript)
+            - name: 8. Static Type Check (TypeScript)
               run: npx tsc --noEmit
 
-            - name: 7. Production Smoke Build
+            - name: 9. Run Unit Tests
+              # This assumes you have a 'test' script in package.json
+              # If you don't have tests yet, this will skip gracefully
+              run: npm test --if-present
+
+            - name: 10. Production Smoke Build
               run: npm run build
               env:
-                  # Next.js optimizes differently if it knows it's in production
                   NODE_ENV: production
