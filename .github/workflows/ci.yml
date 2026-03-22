@@ -20,7 +20,7 @@ jobs:
             - name: 2. Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: 'lts/kotlin' # Use the latest LTS version of Node.js
+                  node-version: 'lts/krypton' # Use the latest LTS version of Node.js
                   cache: 'npm' # This speeds up future runs by minutes
 
             - name: 3. Install Dependencies
