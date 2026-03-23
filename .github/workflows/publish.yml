@@ -9,6 +9,7 @@ on:
 permissions:
     contents: read
     packages: write
+    id-token: write # Required for keyless signing!
 
 jobs:
     build-and-push:
@@ -19,50 +20,57 @@ jobs:
             - name: 1. Checkout Code
               uses: actions/checkout@v4
 
-            - name: 2. Authenticate to GitHub Container Registry
+            - name: 2. Install Cosign
+              uses: sigstore/cosign-installer@v3.4.0
+
+            - name: 3. Authenticate to GitHub Container Registry
               uses: docker/login-action@v3
               with:
                   registry: ghcr.io
                   username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }} # Built-in token, no setup required!
+                  password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: 3. Setup Docker Buildx
-              # Buildx is a modern Docker engine that handles caching better
+            - name: 4. Setup Docker Buildx
               uses: docker/setup-buildx-action@v3
 
-            - name: 4. Build the Docker Image
+            - name: 5. Build the Docker Image
               uses: docker/build-push-action@v5
               with:
                   context: .
-                  push: false # We don't push yet! We need to scan it first.
-                  load: true # Keep the image on the runner so Trivy can see it
+                  push: false
+                  load: true
                   tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 
-            - name: 5. Security Scan (Trivy Image Scan)
+            - name: 6. Security Scan (Trivy Image Scan)
               uses: aquasecurity/trivy-action@v0.35.0
               with:
                   image-ref: 'ghcr.io/${{ github.repository }}:${{ github.sha }}'
                   format: 'table'
-                  exit-code: '1' # Fail the workflow if critical vulnerabilities exist
+                  exit-code: '1'
                   ignore-unfixed: true
                   vuln-type: 'os,library'
                   severity: 'CRITICAL,HIGH'
 
-            - name: 6. Push Image to Registry
-              # If Step 5 passes, we finally upload the image
+            - name: 7. Push Image to Registry
               run: docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
 
-            - name: 7. Generate SBOM (Ingredients List)
-              # We generate the nutrition label for compliance
+            - name: 8. Sign the published Docker image
+              # This step runs ONLY if the image was successfully pushed
+              env:
+                  TAGS: ghcr.io/${{ github.repository }}:${{ github.sha }}
+              run: |
+                  cosign sign --yes ${TAGS}
+
+            - name: 9. Generate SBOM
               uses: anchore/sbom-action@v0
               with:
                   image: ghcr.io/${{ github.repository }}:${{ github.sha }}
                   format: spdx-json
                   output-file: sbom.json
 
-            - name: 8. Upload SBOM as Artifact
+            - name: 10. Upload SBOM as Artifact
               uses: actions/upload-artifact@v4
               with:
                   name: sbom
