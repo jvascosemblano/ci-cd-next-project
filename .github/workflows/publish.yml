@@ -80,6 +80,7 @@ jobs:
               run: |
                   # 1. Clone the Infra Repo
                   git clone https://x-access-token:${{ secrets.INFRA_REPO_TOKEN }}@github.com/${{ github.repository_owner }}/ci-cd-infra.git
+                  ls -la
                   cd ci-cd-next-project
 
                   # 2. Use yq to update only the image.tag field
