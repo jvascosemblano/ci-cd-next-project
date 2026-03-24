@@ -75,3 +75,20 @@ jobs:
               with:
                   name: sbom
                   path: sbom.json
+
+            - name: 11. GitOps Handshake (Update Helm Values)
+              run: |
+                  # 1. Clone the Infra Repo
+                  git clone https://x-access-token:${{ secrets.INFRA_REPO_TOKEN }}@github.com/${{ github.repository_owner }}/ci-cd-infra.git
+                  cd ci-cd-next-project
+
+                  # 2. Use yq to update only the image.tag field
+                  # We use the Git SHA to ensure absolute traceability
+                  yq -i '.image.tag = "${{ github.sha }}"' values.yaml
+
+                  # 3. Commit and Push
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add values.yaml
+                  git commit -m "deploy: update helm tag to ${{ github.sha }} [skip ci]"
+                  git push origin main
